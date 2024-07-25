@@ -1,0 +1,19 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ffcd87;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 960px;
+    margin: 20px auto;
+    padding: 20px;
+    background: rgb(239 238 199);
+    box-shadow: 0px 0px 10px 0px rgba(157, 23, 23, 0.1);
+}
+
+
+.navbar {
+    margin-bottom: 20px;
+    
+}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Dashboard</h2>
+        <a class="btn btn-primary" href="{{ url_for('add') }}">Add New Item</a>
+    </div>
+
+    <div class="row">
+        {% if items %}
+            <div class="col-md-12">
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>{{ item[0] }}</td>
+                                <td>{{ item[1] }}</td>
+                                <td>{{ item[2] }}</td>
+                                <td>
+                                    <a class="btn btn-info btn-sm" href="{{ url_for('update', id=item[0]) }}">Edit</a>
+                                    <a class="btn btn-danger btn-sm" href="{{ url_for('delete', id=item[0]) }}" onclick="return confirm('Are you sure you want to delete this item?');">Delete</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="col-md-12">
+                <div class="alert alert-warning" role="alert">
+                    No items found. Please add some items.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
