@@ -1,0 +1,12 @@
+click
+colorama
+Flask
+Flask-SQLAlchemy
+greenlet
+importlib-metadata
+itsdangerous
+Jinja2
+MarkupSafe
+mysqlclient
+SQLAlchemy
+Werkzeug
