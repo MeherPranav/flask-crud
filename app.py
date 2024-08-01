@@ -56,13 +56,59 @@ def login():
             flash('Login Unsuccessful. Please check username and password', 'danger')
     return render_template('login.html', form=form)
 
+# @app.route('/dashboard')
+# @login_required
+# def dashboard():
+#     cur = mysql.connection.cursor()
+#     cur.execute("SELECT * FROM items")
+#     items = cur.fetchall()
+#     return render_template('dashboard.html', items=items)
+
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
     cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM items")
+
+    # Fetch items for the current user only
+    cur.execute("SELECT id, name, description FROM items WHERE user_id = %s", (current_user.id,))
     items = cur.fetchall()
+
+    cur.close()
     return render_template('dashboard.html', items=items)
+
+
+# @app.route('/add', methods=['GET', 'POST'])
+# @login_required
+# def add():
+#     if request.method == 'POST':
+#         name = request.form['name']
+#         description = request.form['description']
+
+#         cur = mysql.connection.cursor()
+
+#         # Find the next available ID
+#         cur.execute("SELECT COALESCE(MIN(id), 0) FROM items WHERE id > 0")
+#         next_id = cur.fetchone()[0]
+
+#         if next_id == 0:
+#             # No items exist, so start with ID 1
+#             next_id = 1
+#         else:
+#             # Assign the next ID in sequence
+#             cur.execute("SELECT MAX(id) FROM items")
+#             max_id = cur.fetchone()[0]
+#             next_id = max_id + 1
+
+#         # Insert the new item with the determined ID
+#         cur.execute("INSERT INTO items (id, name, description) VALUES (%s, %s, %s)", (next_id, name, description))
+#         mysql.connection.commit()
+#         cur.close()
+
+#         return redirect(url_for('dashboard'))
+
+#     return render_template('add.html')
+
 
 @app.route('/add', methods=['GET', 'POST'])
 @login_required
@@ -73,21 +119,11 @@ def add():
 
         cur = mysql.connection.cursor()
 
-        # Find the next available ID
-        cur.execute("SELECT COALESCE(MIN(id), 0) FROM items WHERE id > 0")
-        next_id = cur.fetchone()[0]
+        # Get the current user's ID
+        user_id = current_user.id
 
-        if next_id == 0:
-            # No items exist, so start with ID 1
-            next_id = 1
-        else:
-            # Assign the next ID in sequence
-            cur.execute("SELECT MAX(id) FROM items")
-            max_id = cur.fetchone()[0]
-            next_id = max_id + 1
-
-        # Insert the new item with the determined ID
-        cur.execute("INSERT INTO items (id, name, description) VALUES (%s, %s, %s)", (next_id, name, description))
+        # Insert the new item with the user ID
+        cur.execute("INSERT INTO items (name, description, user_id) VALUES (%s, %s, %s)", (name, description, user_id))
         mysql.connection.commit()
         cur.close()
 
@@ -111,26 +147,45 @@ def update(id):
         return redirect(url_for('dashboard'))
     return render_template('update.html', item=item)
 
+# @app.route('/delete/<int:id>')
+# @login_required
+# def delete(id):
+#     cur = mysql.connection.cursor()
+
+#     # Delete the item
+#     cur.execute("DELETE FROM items WHERE id = %s", (id,))
+#     mysql.connection.commit()
+
+#     # Renumber IDs sequentially
+#     cur.execute("SET @rank := 0;")
+#     cur.execute("""
+#         UPDATE items
+#         SET id = (@rank := @rank + 1)
+#         ORDER BY id;
+#     """)
+#     mysql.connection.commit()
+
+#     cur.close()
+#     return redirect(url_for('dashboard'))
+
+
 @app.route('/delete/<int:id>')
 @login_required
 def delete(id):
     cur = mysql.connection.cursor()
 
-    # Delete the item
-    cur.execute("DELETE FROM items WHERE id = %s", (id,))
-    mysql.connection.commit()
+    # Check if the item belongs to the current user
+    cur.execute("SELECT id FROM items WHERE id = %s AND user_id = %s", (id, current_user.id))
+    item = cur.fetchone()
 
-    # Renumber IDs sequentially
-    cur.execute("SET @rank := 0;")
-    cur.execute("""
-        UPDATE items
-        SET id = (@rank := @rank + 1)
-        ORDER BY id;
-    """)
-    mysql.connection.commit()
+    if item:
+        # Delete the item if it belongs to the current user
+        cur.execute("DELETE FROM items WHERE id = %s", (id,))
+        mysql.connection.commit()
 
     cur.close()
     return redirect(url_for('dashboard'))
+
 
 
 
